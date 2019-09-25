@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 from datetime import datetime
-from iterm2 import (
-    Connection,
+from iterm2.connection import Connection, run_forever
+from iterm2.registration import StatusBarRPC
+from iterm2.statusbar import (
+    Knob,
     PositiveFloatingPointKnob,
     StatusBarComponent,
-    StatusBarRPC,
     StringKnob,
-    run_forever,
 )
-from iterm2.statusbar import Knob
 from subprocess import CalledProcessError, check_output
-from typing import Any, Dict
+from typing import Any, Dict, List, cast
 from imaplib import IMAP4_SSL
 
 
@@ -94,15 +93,19 @@ class Fetcher:
 
 
 async def main(connection: Connection) -> None:
-    component: StatusBarComponent = StatusBarComponent(
-        "IMAP Status",
-        "Show count of new messages",
-        [
+    knobs: List[Knob] = [
+        cast(Knob, x)
+        for x in (
             StringKnob("Server", "imap.example.com", "", "server"),
             PositiveFloatingPointKnob("Port", 993, "port"),
             StringKnob("Username", "foo@example.com", "", "username"),
             StringKnob("Prefix", "", "📩", "prefix"),
-        ],
+        )
+    ]
+    component: StatusBarComponent = StatusBarComponent(
+        "IMAP Status",
+        "Show count of new messages",
+        knobs,
         "📩 20",
         30,
         "dev.delphinus.imap_status",
