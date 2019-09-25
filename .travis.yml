@@ -5,12 +5,14 @@ python:
   - 3.7
 
 install:
+  - git clone https://github.com/gnachman/iTerm2 ~/iTerm2
   - pip install mypy iterm2
 
 script:
   - SRC=$(find . -name '*.py' | perl -pe 's,^\./,,')
   - |-
     RESULT=$(
+      export MYPYPATH=~/iTerm2/api/library/python/iterm2:$MYPYPATH
       for i in $SRC; do
         mypy --strict $i | grep "^$i" | tee /dev/tty
       done
