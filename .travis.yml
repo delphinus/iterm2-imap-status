@@ -11,10 +11,11 @@ install:
 script:
   - SRC=$(find . -name '*.py' | perl -pe 's,^\./,,')
   - |-
+    export MYPYPATH=~/iTerm2/api/library/python/iterm2:$MYPYPATH
+    export IGNORE='Untyped decorator makes function ".*" untyped'
     RESULT=$(
-      export MYPYPATH=~/iTerm2/api/library/python/iterm2:$MYPYPATH
       for i in $SRC; do
-        mypy --strict $i | grep "^$i" | tee /dev/tty
+        mypy --strict $i | grep "^$i" | grep -v $IGNORE | tee /dev/tty
       done
     )
   - |-
