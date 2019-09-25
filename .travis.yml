@@ -1,0 +1,40 @@
+---
+language: python
+
+python:
+  - 3.7
+
+install:
+  - git clone https://github.com/gnachman/iTerm2 ~/iTerm2
+  - pip install mypy iterm2
+
+script:
+  - SRC=$(find . -name '*.py' | perl -pe 's,^\./,,')
+  - |-
+    export MYPYPATH=~/iTerm2/api/library/python/iterm2:$MYPYPATH
+    export IGNORE='Untyped decorator makes function ".*" untyped'
+    RESULT=$(
+      for i in $SRC; do
+        mypy --strict $i | grep "^$i" | grep -v $IGNORE | tee /dev/tty
+      done
+    )
+  - |-
+    if [[ -n $RESULT ]]; then
+      exit 1
+    fi
+
+notifications:
+  slack:
+    rooms:
+      secure: "VFftpeOZoQPgvE8i3pTd2L0kpfbGPcpKftlHJBsPtrj0mBcBgfAn/ESsu7tbIabh\
+               ZZqsPFT08TB92C1XS12qzUujJqIv/LKaXm35hQ+JJ3gMDrJ4lRR0yOjsnYzcKwPy\
+               l9n89HoXBIl39FZFsdgwzrUT+ifBEXba8eMvoL7gHSK6Oi7tFdZMMFLglEzhXEbv\
+               HTNtcf8vLJpTPsmNkaORs1YaNfGdGUtcYegE4M3+5FEmib92NvwX0IsLCOPAHOKi\
+               UtBcaX5JAAMH4Zq/g2KzpxWYcIk4DXZMdxfYWx/QRFGbK2Ho+O/G2gssWSAAgLy4\
+               HlLFQIN6ZgWeGbtG0XY1x3nDEwIpcS5i17+xU1vCBH+aM4bb8PEUI0Ju/yIwL6S4\
+               JOWpeffsG5kZ8T/6bZXae7WWJexqsIwC9VQKXhwRvp7g7g2+5qOV/xhBKUxME/Dp\
+               c775sm8jRPo5ov3UFzqIFrcHOGoZFQGAmjvXTRWuOm/zodTvrrcaLrENZ4Hy/9LM\
+               ULhYsDDGQOv9EIk2xnEJQZ28UcU6EG5nGNywKoS1eL/9jNqItmWwCthWWhXwuNnf\
+               JgfSXZIE6T4Uli1KBFcVy/8vmEY73jG4Hk+9cShHrGfJ0qenZ+wC+jJNwfoJrlRr\
+               n63eR1kOk8AULm/+wwoUMPpuPFF3gHslpkss461ck5U="
+  on_success: never
