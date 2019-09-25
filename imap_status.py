@@ -10,7 +10,7 @@ from iterm2 import (
 )
 from iterm2.statusbar import Knob
 from subprocess import CalledProcessError, check_output
-from typing import Dict, List
+from typing import Any, Dict
 from imaplib import IMAP4_SSL
 
 
@@ -21,12 +21,12 @@ class Config:
         self.port = port
         self.username = username
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, Config):
             return self.__id == other.__id
         return False
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.__id)
 
     def __str__(self) -> str:
@@ -36,7 +36,7 @@ class Config:
 class Cache:
     __cache: Dict[Config, Dict[str, int]] = {}
 
-    def __init__(self, expires=29) -> None:
+    def __init__(self, expires: int = 29) -> None:
         self.expires = expires
 
     def is_old(self, cfg: Config, now: int) -> bool:
@@ -68,29 +68,26 @@ class Fetcher:
         imap = IMAP4_SSL(cfg.server, cfg.port)
         (result, [data]) = imap.login(cfg.username, self.password(cfg))
         if result != "OK":
-            raise message
+            raise RuntimeError("error occurred on login")
         (result, [data]) = imap.select("INBOX")
         return int(data.decode("utf-8"))
 
     def password(self, cfg: Config) -> str:
         try:
-            return (
-                check_output(
-                    args=[
-                        "security",
-                        "find-internet-password",
-                        "-a",
-                        cfg.username,
-                        "-s",
-                        cfg.server,
-                        "-P",
-                        str(cfg.port),
-                        "-w",
-                    ]
-                )
-                .decode("utf-8")
-                .strip()
+            out: bytes = check_output(
+                args=[
+                    "security",
+                    "find-internet-password",
+                    "-a",
+                    cfg.username,
+                    "-s",
+                    cfg.server,
+                    "-P",
+                    str(cfg.port),
+                    "-w",
+                ]
             )
+            return out.decode("utf-8").strip()
         except CalledProcessError:
             print("cannot access to keychain")
             raise
@@ -113,7 +110,7 @@ async def main(connection: Connection) -> None:
     fetcher = Fetcher()
 
     @StatusBarRPC
-    async def imap_status(knobs: List[Knob]) -> str:
+    async def imap_status(knobs: Dict[str, Any]) -> str:
         cfg = Config(knobs["server"], knobs["port"], knobs["username"])
         count = fetcher.run(cfg)
         return f"{knobs['prefix']} {count}"
