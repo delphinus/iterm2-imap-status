@@ -10,7 +10,11 @@ from iterm2.statusbar import (
 )
 from subprocess import CalledProcessError, check_output
 from typing import Any, Dict, List, cast
-from imaplib import IMAP4_SSL
+
+try:
+    from imaplib import IMAP4_SSL
+except ImportError as e:
+    print(f"Error occurred. You may need openssl to be installed by Homebrew: {e}")
 
 
 class Config:
